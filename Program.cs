@@ -9,4 +9,5 @@ IConfiguration configuration = new ConfigurationBuilder()
 //await ToolChatApp.Run(configuration); 
 //await AgentWithAiSearch.Run(configuration);
 //await AgentWithMcpTool.Run(configuration);
-await AgentWithFoundryIQ.Run(configuration);
+//await AgentWithFoundryIQ.Run(configuration);
+await AgentWorkflow.Run(configuration);
