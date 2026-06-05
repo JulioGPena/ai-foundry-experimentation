@@ -10,6 +10,8 @@
 
     <ItemGroup>
       <PackageReference Include="Azure.AI.Projects" />
+      <PackageReference Include="Microsoft.Agents.AI.Foundry" />
+      <PackageReference Include="Microsoft.Agents.AI.Workflows" />
       <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
     </ItemGroup>
 

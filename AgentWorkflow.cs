@@ -1,9 +1,7 @@
-﻿using Azure;
-using Azure.AI.Extensions.OpenAI;
+﻿using Azure.AI.Extensions.OpenAI;
 using Azure.AI.Projects;
 using Azure.Identity;
 using Microsoft.Extensions.Configuration;
-using OpenAI.Assistants;
 using OpenAI.Responses;
 
 namespace AI_103;
@@ -23,8 +21,8 @@ public sealed class AgentWorkflow
         ProjectConversation conversation = await projectClient.ProjectOpenAIClient.GetProjectConversationsClient()
                                                               .CreateProjectConversationAsync();
         
-        var responsesClient = projectClient.ProjectOpenAIClient.
-                                                              GetProjectResponsesClientForAgent(agentReference, conversation.Id);
+        var responsesClient = projectClient.ProjectOpenAIClient
+                                           .GetProjectResponsesClientForAgent(agentReference, conversation.Id);
         
         while (true)
         {
