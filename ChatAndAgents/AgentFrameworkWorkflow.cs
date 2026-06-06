@@ -14,7 +14,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using OpenAI.Responses;
 
-namespace AI_103;
+namespace AI_103.ChatAndAgents;
 
 #pragma warning disable OPENAI001
 

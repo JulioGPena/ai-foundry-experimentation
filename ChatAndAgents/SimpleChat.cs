@@ -3,9 +3,9 @@ using Azure.Identity;
 using Microsoft.Extensions.Configuration;
 using OpenAI.Responses;
 
-namespace AI_103;
+namespace AI_103.ChatAndAgents;
 
-public class SimpleChatApp
+public class SimpleChat
 {
     #pragma warning disable OPENAI001
     public static async Task Run(IConfiguration configuration)
