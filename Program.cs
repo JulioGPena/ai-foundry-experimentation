@@ -20,4 +20,5 @@ IConfiguration configuration = new ConfigurationBuilder()
 //await MultiModalChat.Run(configuration);
 //await ImageGeneration.Run(configuration);
 //await ImageAnalysis.Run(configuration);
-await DocumentAnalysis.Run(configuration);
+//await DocumentAnalysis.Run(configuration);
+await DocumentIntelligence.Run(configuration);

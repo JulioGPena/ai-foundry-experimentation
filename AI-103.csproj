@@ -10,6 +10,7 @@
 
     <ItemGroup>
       <PackageReference Include="Azure.AI.ContentUnderstanding" />
+      <PackageReference Include="Azure.AI.DocumentIntelligence" />
       <PackageReference Include="Azure.AI.Projects" />
       <PackageReference Include="Azure.AI.TextAnalytics" />
       <PackageReference Include="Microsoft.Agents.AI.Foundry" />
@@ -73,6 +74,9 @@
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
         <None Update="Vision\businesscard_analyser.json">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+        <None Update="Vision\content\sample-invoice.pdf">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
     </ItemGroup>
