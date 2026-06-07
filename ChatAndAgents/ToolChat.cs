@@ -52,7 +52,7 @@ public class ToolChat
             chat = chat.Append(ResponseItem.CreateUserMessageItem(userMessage))
                        .ToArray();
 
-            var responseOptions = CreateResponseOptions(chat, functionTool);
+            var responseOptions = CreateResponseOptions(chat, functionTool, configuration);
             
             ResponseResult response = await responsesClient.CreateResponseAsync(responseOptions);
             foreach (var responseItem in response.OutputItems)
@@ -68,7 +68,7 @@ public class ToolChat
                             JsonSerializer.Serialize(output)))
                                .ToArray();
                     
-                    responseOptions = CreateResponseOptions(chat, functionTool, response.Id);
+                    responseOptions = CreateResponseOptions(chat, functionTool, configuration, response.Id);
                     response = await responsesClient.CreateResponseAsync(responseOptions);
                 }
             }
@@ -78,11 +78,15 @@ public class ToolChat
         }
     }
 
-    private static CreateResponseOptions CreateResponseOptions(ResponseItem[]? chat, ResponseTool tool, string? previousResponseId = null)
+    private static CreateResponseOptions CreateResponseOptions(
+        ResponseItem[]? chat, 
+        ResponseTool tool, 
+        IConfiguration configuration, 
+        string? previousResponseId = null)
     {
         var options = new CreateResponseOptions
         {
-            Model = "gpt-chat-latest",
+            Model = configuration["ModelDeployment"],
             PreviousResponseId = previousResponseId,
             Tools = { tool }
         };

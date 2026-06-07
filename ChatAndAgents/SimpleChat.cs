@@ -30,7 +30,7 @@ public class SimpleChat
             
             chat.Add(ResponseItem.CreateUserMessageItem(userMessage));
             var response = responsesClient.CreateResponseStreamingAsync(
-                "gpt-chat-latest",
+                configuration["ModelDeployment"],
                 chat);
 
             int updateCount = 0;

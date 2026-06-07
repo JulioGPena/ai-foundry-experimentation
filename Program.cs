@@ -1,6 +1,7 @@
 ﻿using AI_103;
 using AI_103.ChatAndAgents;
 using AI_103.NaturalLanguage;
+using AI_103.Vision;
 using Microsoft.Extensions.Configuration;
 
 IConfiguration configuration = new ConfigurationBuilder()
@@ -15,4 +16,5 @@ IConfiguration configuration = new ConfigurationBuilder()
 //await AgentWorkflow.Run(configuration);
 //await AgentFrameworkWithTool.Run(configuration);
 //await AgentFrameworkWorkflow.Run(configuration);
-await TextAnalysis.Run(configuration);
+//await TextAnalysis.Run(configuration);
+await MultiModalChat.Run(configuration);
