@@ -16,7 +16,6 @@ public class SimpleChat
         
         var responsesClient = projectClient.ProjectOpenAIClient.GetProjectResponsesClient();
         
-
         var chat = new List<ResponseItem>
         {
             ResponseItem.CreateSystemMessageItem("You're a helpful assistant.")

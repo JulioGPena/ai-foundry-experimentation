@@ -17,4 +17,5 @@ IConfiguration configuration = new ConfigurationBuilder()
 //await AgentFrameworkWithTool.Run(configuration);
 //await AgentFrameworkWorkflow.Run(configuration);
 //await TextAnalysis.Run(configuration);
-await MultiModalChat.Run(configuration);
+//await MultiModalChat.Run(configuration);
+await ImageGeneration.Run(configuration);
