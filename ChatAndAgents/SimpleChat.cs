@@ -1,4 +1,7 @@
-﻿using Azure.AI.Projects;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Azure.AI.Projects;
 using Azure.Identity;
 using Microsoft.Extensions.Configuration;
 using OpenAI.Responses;

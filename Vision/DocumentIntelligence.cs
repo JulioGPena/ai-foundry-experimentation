@@ -1,4 +1,7 @@
-﻿using Azure;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
+using Azure;
 using Azure.AI.DocumentIntelligence;
 using Azure.Identity;
 using Microsoft.Extensions.Configuration;
@@ -24,11 +27,14 @@ public sealed class DocumentIntelligence
         var result = await documentIntelligenceClient.AnalyzeDocumentAsync(
             WaitUntil.Completed,
             "prebuilt-invoice",
-            fileData);
+            new AnalyzeDocumentContent
+            {
+                Base64Source = fileData
+            });
 
         foreach (var document in result.Value.Documents)
         {
-            Console.WriteLine($"Document of type: {document.DocumentType}");
+            Console.WriteLine($"Document of type: {document.DocType}");
             foreach (var field in document.Fields)
             {
                 if (field.Key.Equals("Items", StringComparison.OrdinalIgnoreCase))

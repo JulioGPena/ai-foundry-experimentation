@@ -1,4 +1,7 @@
-﻿using System.ClientModel;
+﻿using System;
+using System.ClientModel;
+using System.IO;
+using System.Threading.Tasks;
 using Azure.AI.Projects;
 using Azure.Identity;
 using Microsoft.Extensions.Configuration;

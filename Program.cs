@@ -15,10 +15,10 @@ IConfiguration configuration = new ConfigurationBuilder()
 //await AgentWithFoundryIQ.Run(configuration);
 //await AgentWorkflow.Run(configuration);
 //await AgentFrameworkWithTool.Run(configuration);
-//await AgentFrameworkWorkflow.Run(configuration);
+await AgentFrameworkWorkflow.Run(configuration);
 //await TextAnalysis.Run(configuration);
 //await MultiModalChat.Run(configuration);
 //await ImageGeneration.Run(configuration);
 //await ImageAnalysis.Run(configuration);
 //await DocumentAnalysis.Run(configuration);
-await DocumentIntelligence.Run(configuration);
+//await DocumentIntelligence.Run(configuration);

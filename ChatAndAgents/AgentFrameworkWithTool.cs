@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
+using System.Threading.Tasks;
 using Azure.AI.Projects;
 using Azure.AI.Projects.Agents;
 using Azure.Identity;

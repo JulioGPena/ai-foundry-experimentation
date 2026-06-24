@@ -1,4 +1,9 @@
-﻿using Azure;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Azure;
 using Azure.AI.ContentUnderstanding;
 using Azure.Identity;
 using Microsoft.Extensions.Configuration;

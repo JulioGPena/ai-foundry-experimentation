@@ -1,4 +1,6 @@
-﻿using Azure.AI.Extensions.OpenAI;
+﻿using System;
+using System.Threading.Tasks;
+using Azure.AI.Extensions.OpenAI;
 using Azure.AI.Projects;
 using Azure.AI.Projects.Agents;
 using Azure.Identity;

@@ -1,4 +1,8 @@
-﻿using Azure.AI.TextAnalytics;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Azure.AI.TextAnalytics;
 using Azure.Identity;
 using Microsoft.Extensions.Configuration;
 
