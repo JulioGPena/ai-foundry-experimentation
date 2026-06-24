@@ -1,21 +1,14 @@
-﻿using System;
-using System.ComponentModel;
-using System.Net.Http;
+﻿using System.ComponentModel;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
-using System.Text.Json.Schema;
 using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
-using System.Threading.Tasks;
 using Azure.AI.Projects;
-using Azure.AI.Projects.Agents;
 using Azure.Identity;
 using Microsoft.Agents.AI;
 using Microsoft.Agents.AI.Workflows;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
-using OpenAI.Responses;
 
 namespace AI_103.ChatAndAgents;
 
@@ -23,7 +16,10 @@ namespace AI_103.ChatAndAgents;
 
 public sealed class AgentFrameworkWorkflow
 {
-    private static HttpClient _httpClient = new()
+    // Constant conversation id to test conversation persistence
+    private const string ConversationId = "conversation-01";
+    
+    private static readonly HttpClient HttpClient = new()
     {
         BaseAddress = new Uri("https://api.openweathermap.org")
     };
@@ -43,10 +39,10 @@ public sealed class AgentFrameworkWorkflow
         var specializedAgents = new List<AIAgent>();
         specializedAgents.AddRange([
             routingAgent,
-            await CreateRecommendationAgent(projectClient, configuration),
-            await CreateWeatherAgent(projectClient, configuration), 
-            await CreateHotelAgent(projectClient, configuration), 
-            await CreateEventAgent(projectClient, configuration)]);
+            CreateRecommendationAgent(projectClient, configuration),
+            CreateWeatherAgent(projectClient, configuration), 
+            CreateHotelAgent(projectClient, configuration), 
+            CreateEventAgent(projectClient, configuration)]);
 
         var workflowBuilder = AgentWorkflowBuilder.CreateHandoffBuilderWith(routingAgent);
 
@@ -60,7 +56,9 @@ public sealed class AgentFrameworkWorkflow
                        .Build()
                        .AsAIAgent();
 
-        var session = await workflow.CreateSessionAsync();
+        var conversation = await Conversation.GetOrCreateConversation(ConversationId);
+        //var session = await workflow.CreateSessionAsync();
+        
         do
         {
             Console.Write("User: ");
@@ -70,25 +68,38 @@ public sealed class AgentFrameworkWorkflow
             {
                 break;
             }
-
-            var run = workflow.RunStreamingAsync(new ChatMessage(ChatRole.User, userInput), session);
-            string? lastAgent = null;
+            
+            conversation.AddUserMessage(userInput);
+            var run = workflow.RunStreamingAsync(conversation.Messages);
+            var assistantResponseBuilder = new StringBuilder();
+            
+            string? currentAssistant = null;
             await foreach (var update in run)
             {
-                string? currentAgent = update.AuthorName;
-                if (currentAgent is not null && !currentAgent.Equals(lastAgent))
+                if (!String.IsNullOrEmpty(update.Text))
                 {
-                    Console.Write($"{currentAgent}: ");
+                    if (String.IsNullOrEmpty(currentAssistant))
+                    {
+                        Console.Write($"{update.AuthorName}: ");
+                    }
+
+                    currentAssistant = update.AuthorName;
                 }
                 
                 Console.Write(update.Text);
-                
-                lastAgent = currentAgent;
+                assistantResponseBuilder.Append(update.Text);
             }
-
-            lastAgent = null;
+            
+            conversation.AddAssistantMessage(assistantResponseBuilder.ToString(), currentAssistant);
             Console.WriteLine();
         } while (true);
+        
+        conversation.Persist();
+
+        // This is overly verbose, for three interactions I got a 9k lines file
+        // var state = await workflow.SerializeSessionAsync(session);
+        // string json = JsonSerializer.Serialize(state);
+        // await File.WriteAllTextAsync("session.json", json);
     }
     
     private static AIAgent CreateRoutingAgent(AIProjectClient projectClient, IConfiguration configuration)
@@ -101,7 +112,7 @@ public sealed class AgentFrameworkWorkflow
                                 "routing-agent");
     }
     
-    private static async Task<AIAgent> CreateWeatherAgent(AIProjectClient projectClient, IConfiguration configuration)
+    private static AIAgent CreateWeatherAgent(AIProjectClient projectClient, IConfiguration configuration)
     {
         return projectClient.ProjectOpenAIClient
                             .GetChatClient(configuration["modelDeployment"])
@@ -112,17 +123,8 @@ public sealed class AgentFrameworkWorkflow
                                 tools: [AIFunctionFactory.Create(WeatherFunction, "WeatherFunction")]);
     }
     
-    private static async Task<AIAgent> CreateRecommendationAgent(AIProjectClient projectClient, IConfiguration configuration)
+    private static AIAgent CreateRecommendationAgent(AIProjectClient projectClient, IConfiguration configuration)
     {
-        var agentDefinition = new DeclarativeAgentDefinition(configuration["modelDeployment"])
-        {
-            Instructions = "You are an AI agent that provides recommendations of what to do in each city based on the current weather at a city. You always begin your answer with: Based on the current weather conditions in {city}, I recommend you to {activity}."
-        };
-        
-        ProjectsAgentVersion agent = await projectClient.AgentAdministrationClient.CreateAgentVersionAsync(
-            "new-maf-agent-recommendation",
-            options: new(agentDefinition));
-
         return projectClient.ProjectOpenAIClient
                             .GetChatClient(configuration["modelDeployment"])
                             .AsIChatClient()
@@ -132,10 +134,10 @@ public sealed class AgentFrameworkWorkflow
     }
     
     // Foundry client/agents does not turn back handoff, they can only be handoff to but do not return control. As a workaround they can be exposed as tools to a wrapper local agent.
-    private static async Task<AIAgent> CreateHotelAgent(AIProjectClient projectClient, IConfiguration configuration)
+    private static AIAgent CreateHotelAgent(AIProjectClient projectClient, IConfiguration configuration)
     {
         var hotelSearchTool = projectClient.AsAIAgent(
-            configuration["modelDeployment"],
+            configuration["modelDeployment"]!,
             "You are an AI agent that provides hotel information based on recommendations given, if the user requests for it. You use the web search tool to find hotel information.",
             "hotel-agent",
             tools: [new HostedWebSearchTool()]).AsAIFunction();
@@ -150,10 +152,10 @@ public sealed class AgentFrameworkWorkflow
     }
     
     // Foundry client/agents does not turn back handoff, they can only be handoff to but do not return control. As a workaround they can be exposed as tools to a wrapper local agent.
-    private static async Task<AIAgent> CreateEventAgent(AIProjectClient projectClient, IConfiguration configuration)
+    private static AIAgent CreateEventAgent(AIProjectClient projectClient, IConfiguration configuration)
     {
         var eventSearchTool = projectClient.AsAIAgent(
-            configuration["modelDeployment"],
+            configuration["modelDeployment"]!,
             "You are an AI agent that provides events information based on recommendations given, if the user requests for it. You use the web search tool to find events information.",
             "event-agent",
             tools: [new HostedWebSearchTool()]).AsAIFunction();
@@ -170,7 +172,7 @@ public sealed class AgentFrameworkWorkflow
     [Description("Provides weather information for a given city.")]
     private static async Task<WeatherResponse?> WeatherFunction(WeatherRequest request)
     {
-        var response = await _httpClient.GetAsync($"/data/2.5/weather?q={request.City}&appid={_apiKey}&units=metric");
+        var response = await HttpClient.GetAsync($"/data/2.5/weather?q={request.City}&appid={_apiKey}&units=metric");
         response.EnsureSuccessStatusCode();
         var weatherInfo = await response.Content.ReadFromJsonAsync<WeatherResponse>();  
         return weatherInfo;
@@ -200,5 +202,44 @@ public sealed class AgentFrameworkWorkflow
             public string? Description { get; init; }
             
         }
+    }
+}
+
+public sealed record Conversation(string Id, List<ChatMessage> Messages)
+{
+    public void AddUserMessage(string message)
+    {
+        Messages.Add(new ChatMessage(ChatRole.User, message)
+        {
+            AuthorName = "User",
+            CreatedAt = DateTime.UtcNow
+        });
+    }
+    
+    public void AddAssistantMessage(string message, string? assistant = "Assistant")
+    {
+        Messages.Add(new ChatMessage(ChatRole.Assistant, message)
+        {
+            AuthorName = assistant,
+            CreatedAt = DateTime.UtcNow
+        });
+    }
+    
+    public static async Task<Conversation> GetOrCreateConversation(string conversationId)
+    {
+        if (File.Exists($"{conversationId}.json"))
+        {
+            string json = await File.ReadAllTextAsync($"{conversationId}.json");
+            var messages = JsonSerializer.Deserialize<List<ChatMessage>>(json);
+            return new Conversation(conversationId, messages ?? []);
+        }
+
+        return new Conversation(conversationId, []);
+    }
+
+    public void Persist()
+    {
+        var messages = JsonSerializer.Serialize(Messages);
+        File.WriteAllText($"{Id}.json", messages);
     }
 }
